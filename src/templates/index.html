@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Контрольная работа ММО</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .form-container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+        .predicted-class {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+        #uploaded-image {
+            max-width: 100%;
+            height: auto;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Контрольная работа ММО</h1>
+    <div class="form-container">
+        <form id="upload-form" enctype="multipart/form-data">
+            <div class="custom-file mb-3">
+                <input type="file" class="custom-file-input" id="customFile" name="file" accept=".png, .jpg, .jpeg, .gif" required>
+                <label class="custom-file-label" for="customFile">Выбрать изображение</label>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Определить</button>
+        </form>
+        <div class="predicted-class"></div>
+        <div class="error"></div>
+        <img id="uploaded-image" src="#" alt="Uploaded Image" style="display: none;">
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('.custom-file-input').addEventListener('change', function(e) {
+                var fileName = e.target.files[0].name;
+                var nextSibling = e.target.nextElementSibling;
+                nextSibling.innerText = fileName;
+
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('uploaded-image').src = e.target.result;
+                    document.getElementById('uploaded-image').style.display = 'block';
+                };
+                reader.readAsDataURL(this.files[0]);
+            });
+
+            document.querySelector('#upload-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                var formData = new FormData(this);
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', '/classify', true);
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        var response = JSON.parse(xhr.responseText);
+                        if (response.error) {
+                            document.querySelector('.error').innerText = response.error;
+                            document.querySelector('.predicted-class').innerText = '';
+                        } else {
+                            document.querySelector('.error').innerText = '';
+                            document.querySelector('.predicted-class').innerText = 'Определено как: ' + response.predicted_class;
+                        }
+                    }
+                };
+                xhr.send(formData);
+            });
+        });
+    </script>
+</body>
+</html>
